@@ -1,18 +1,27 @@
+// 导入 AppLayout 组件和 Vue Router 的相关函数
 import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 
+// 创建 Vue Router 的实例
 const router = createRouter({
+    // 使用 HTML5 的 history API 来管理路由
     history: createWebHistory(),
+    // 定义路由规则
     routes: [
+        // 根路径路由，使用 AppLayout 组件作为布局
         {
             path: '/',
             component: AppLayout,
+            // 定义嵌套路由，用于展示不同的页面组件
             children: [
+                // 主仪表板路由
                 {
                     path: '/',
                     name: 'dashboard',
+                    // 动态导入 Dashboard 组件
                     component: () => import('@/views/Dashboard.vue')
                 },
+                // 以下为各种 UI 组件的路由，采用动态导入的方式加载组件
                 {
                     path: '/uikit/formlayout',
                     name: 'formlayout',
@@ -34,6 +43,11 @@ const router = createRouter({
                     component: () => import('@/views/uikit/TableDoc.vue')
                 },
                 {
+                    path: '/uikit/chat',
+                    name: 'chat',
+                    component: () => import('@/views/uikit/Chat.vue')
+                },
+                {
                     path: '/uikit/list',
                     name: 'list',
                     component: () => import('@/views/uikit/ListDoc.vue')
@@ -48,7 +62,6 @@ const router = createRouter({
                     name: 'panel',
                     component: () => import('@/views/uikit/PanelsDoc.vue')
                 },
-
                 {
                     path: '/uikit/overlay',
                     name: 'overlay',
@@ -89,6 +102,7 @@ const router = createRouter({
                     name: 'timeline',
                     component: () => import('@/views/uikit/TimelineDoc.vue')
                 },
+                // 页面示例路由
                 {
                     path: '/pages/empty',
                     name: 'empty',
@@ -106,6 +120,7 @@ const router = createRouter({
                 }
             ]
         },
+        // 独立的页面路由，不需要使用 AppLayout 布局
         {
             path: '/landing',
             name: 'landing',
@@ -116,7 +131,7 @@ const router = createRouter({
             name: 'notfound',
             component: () => import('@/views/pages/NotFound.vue')
         },
-
+        // 认证相关的路由
         {
             path: '/auth/login',
             name: 'login',
@@ -135,4 +150,5 @@ const router = createRouter({
     ]
 });
 
+// 导出配置好的路由实例
 export default router;
