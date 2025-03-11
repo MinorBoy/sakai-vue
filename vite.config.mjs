@@ -18,6 +18,7 @@ export default defineConfig({
         vue(),
         // 使用组件自动导入插件
         Components({
+            dts: true, // 生成.d.ts类型声明文件，解决vscode中无法自动提示组件属性和方法的问题
             // 配置解析器
             resolvers: [PrimeVueResolver()]
         })
