@@ -117,6 +117,11 @@ const router = createRouter({
                     path: '/pages/chat',
                     name: 'chat',
                     component: () => import('@/views/pages/Chat.vue')
+                },
+                {
+                    path: '/pages/dify',
+                    name: 'dify',
+                    component: () => import('@/views/pages/Dify.vue')
                 }
             ]
         },

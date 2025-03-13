@@ -1,30 +1,36 @@
 <template>
-    <div class="flex h-screen">
-        <!-- 左侧导航栏 -->
-        <div class="w-80 bg-gray-100 border-r p-4 flex flex-col">
-            <div class="mb-6">
-                <h2 class="text-xl font-bold mb-4">Chats</h2>
-                <div class="space-y-2">
-                    <div v-for="channel in channels" :key="channel.id" class="p-2 hover:bg-gray-200 rounded cursor-pointer" :class="{ 'bg-gray-200': activeChannel === channel.id }" @click="activeChannel = channel.id">
-                        <div class="flex items-center">
-                            <Avatar :image="channel.avatar" shape="circle" size="large" />
-                            <div class="ml-3">
-                                <div class="font-medium">{{ channel.name }}</div>
-                                <div class="text-sm text-gray-500">@{{ channel.handle }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <div class="flex h-[82vh] overflow-hidden">
+        <!-- 左侧导航栏 - 会话列表 -->
+        <div class="w-80 bg-white border-r flex flex-col">
+            <!-- 标题栏 -->
+            <div class="p-4">
+                <h2 class="text-lg font-semibold text-gray-900">Chats</h2>
             </div>
 
-            <Divider />
-
-            <div class="mt-4 flex-1">
-                <h3 class="font-semibold mb-3">Members</h3>
-                <div class="space-y-2">
-                    <div v-for="member in members" :key="member.id" class="flex items-center">
-                        <Avatar :image="member.avatar" shape="circle" />
-                        <span class="ml-2">{{ member.name }}</span>
+            <!-- 可滚动的会话列表 -->
+            <div class="flex-1 overflow-y-auto">
+                <div class="space-y-1 p-2">
+                    <div
+                        v-for="chat in chats"
+                        :key="chat.id"
+                        @click="activeChat = chat.id"
+                        class="group flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors"
+                        :class="{
+                            'bg-primary-100': activeChat === chat.id,
+                            'hover:bg-gray-100': activeChat !== chat.id
+                        }"
+                    >
+                        <Avatar :image="chat.avatar" shape="circle" size="large" class="shrink-0" />
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">
+                                {{ chat.name }}
+                            </p>
+                            <p class="text-xs text-gray-500 truncate">{{ chat.members }} members</p>
+                        </div>
+                        <!-- 未读消息标记 -->
+                        <span v-if="chat.unread" class="ml-auto bg-primary-500 text-white rounded-full px-2 py-1 text-xs">
+                            {{ chat.unread }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -35,10 +41,10 @@
             <!-- 聊天头 -->
             <div class="p-4 border-b flex items-center justify-between">
                 <div class="flex items-center">
-                    <Avatar :image="activeChannelData.avatar" shape="circle" size="large" />
+                    <Avatar :image="activeChatData.avatar" shape="circle" size="large" />
                     <div class="ml-3">
-                        <div class="font-bold">{{ activeChannelData.name }}</div>
-                        <div class="text-sm text-gray-500">{{ activeChannelData.members }} members</div>
+                        <div class="font-bold">{{ activeChatData.name }}</div>
+                        <div class="text-sm text-gray-500">{{ activeChatData.members }} members</div>
                     </div>
                 </div>
                 <Button icon="pi pi-cog" @click="visibleRight = true" />
@@ -59,8 +65,8 @@
                                     {{ message.content }}
                                 </div>
                                 <div v-if="message.attachments" class="mt-2">
-                                    <div v-for="(file, index) in message.attachments" :key="index" class="p-2 bg-gray-100 rounded flex items-center">
-                                        <i class="pi pi-file mr-2"></i>
+                                    <div v-for="(file, index) in message.attachments" :key="index" class="p-2 bg-gray-100 rounded flex items-center mt-1">
+                                        <i :class="getFileIcon(file.name)" class="mr-2"></i>
                                         <span>{{ file.name }}</span>
                                     </div>
                                 </div>
@@ -73,6 +79,7 @@
             <!-- 输入区域 -->
             <div class="p-4 border-t bg-white">
                 <div class="flex items-center gap-2">
+                    <!-- <FileUpload mode="basic" name="demo[]" url="/api/upload" accept="image/*" :maxFileSize="1000000" @upload="onUpload" :auto="true" chooseLabel="Browse" /> -->
                     <Button icon="pi pi-paperclip" text rounded />
                     <InputText v-model="newMessage" placeholder="Write your message..." class="flex-1" @keyup.enter="sendMessage" />
                     <Button icon="pi pi-send" @click="sendMessage" />
@@ -100,10 +107,11 @@
 </template>
 
 <script setup>
-import ParameterRow from '@/components/chat/ParameterRow.vue'; // 导入 ParameterRow 组件
+import ParameterRow from '@/components/chat/ParameterRow.vue';
 import { computed, ref } from 'vue';
 
-const activeChannel = ref(1);
+const activeChat = ref(1);
+
 const visibleRight = ref(false);
 
 const settings = ref({
@@ -120,7 +128,7 @@ const models = ref([
     { name: 'GPT-4', value: 'gpt4' }
 ]);
 
-const channels = ref([
+const chats = ref([
     {
         id: 1,
         name: 'PrimeTek Team',
@@ -131,37 +139,33 @@ const channels = ref([
     // 其他频道数据...
 ]);
 
-const members = ref([
-    { id: 1, name: 'Esther Howard', avatar: '/user1.png' },
-    { id: 2, name: 'Jerome Bell', avatar: '/user2.png' }
-    // 其他成员数据...
-]);
-
 const messages = ref([
     {
         id: 1,
+        chatId: 1,
         sender: 'Cody Fisher',
         time: '2024-03-11T12:30:00',
         content: "Hey there! I've heard about the accessibility features...",
         avatar: '/user3.png',
-        attachments: null
+        attachments: [{ name: 'logo.png' }, { name: 'guide.pdf' }, { name: 'requirements.doc' }, { name: 'mockup.xlsx' }]
     },
     {
         id: 2,
+        chatId: 2,
         sender: 'PrimeTek Team',
         time: '2024-03-11T11:15:00',
         content: "Let's implement PrimeVue...",
         avatar: '/team-avatar.png',
-        isUser: true
+        isUser: true,
+        attachments: null
     }
-    // 其他消息数据...
 ]);
 
 const newMessage = ref('');
 
-const activeChannelData = computed(() => channels.value.find((c) => c.id === activeChannel.value));
+const activeChatData = computed(() => chats.value.find((c) => c.id === activeChat.value));
 
-const filteredMessages = computed(() => messages.value.filter((m) => m.channelId === activeChannel.value));
+const filteredMessages = computed(() => messages.value.filter((m) => m.chatId === activeChat.value));
 
 const formatTime = (datetime) => {
     const date = new Date(datetime);
@@ -173,14 +177,43 @@ const sendMessage = () => {
 
     messages.value.push({
         id: messages.value.length + 1,
+        chatId: activeChat.value,
         sender: 'You',
         time: new Date().toISOString(),
         content: newMessage.value,
-        isUser: true
+        isUser: true,
+        avatar: ''
     });
 
     newMessage.value = '';
 };
+
+const getFileIcon = (fileName) => {
+    const extension = fileName.split('.').pop().toLowerCase();
+    switch (extension) {
+        case 'pdf':
+            return 'pi pi-file-pdf';
+        case 'doc':
+        case 'docx':
+            return 'pi pi-file-word';
+        case 'xls':
+        case 'xlsx':
+            return 'pi pi-file-excel';
+        case 'png':
+        case 'jpg':
+        case 'jpeg':
+        case 'gif':
+            return 'pi pi-image';
+        case 'apk':
+            return 'pi pi-android';
+        case 'ipa':
+            return 'pi pi-apple';
+        default:
+            return 'pi pi-file';
+    }
+};
+
+const onUpload = () => {};
 </script>
 
 <style scoped>
