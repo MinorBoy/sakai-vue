@@ -43,11 +43,6 @@ const router = createRouter({
                     component: () => import('@/views/uikit/TableDoc.vue')
                 },
                 {
-                    path: '/uikit/chat',
-                    name: 'chat',
-                    component: () => import('@/views/uikit/Chat.vue')
-                },
-                {
                     path: '/uikit/list',
                     name: 'list',
                     component: () => import('@/views/uikit/ListDoc.vue')
@@ -117,6 +112,11 @@ const router = createRouter({
                     path: '/documentation',
                     name: 'documentation',
                     component: () => import('@/views/pages/Documentation.vue')
+                },
+                {
+                    path: '/pages/chat',
+                    name: 'chat',
+                    component: () => import('@/views/pages/Chat.vue')
                 }
             ]
         },

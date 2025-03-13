@@ -30,5 +30,23 @@ export default defineConfig({
             // 配置'@'符号指向的目录
             '@': fileURLToPath(new URL('./src', import.meta.url))
         }
+    },
+    server: {
+        // // 配置服务器端口
+        // port: 5183,
+        // // 配置服务器主机
+        // host: '0.0.0.0',
+        // // 配置服务器代理
+        // proxy: {
+        //     // 配置代理规则
+        //     '/api': {
+        //         // 配置代理目标
+        //         target: 'http://localhost:8900',
+        //         // 配置代理路径重写
+        //         rewrite: path => path.replace(/^\/api/, '')
+        //     }
+        // },
+        // 配置服务器打开浏览器
+        open: true
     }
 });
