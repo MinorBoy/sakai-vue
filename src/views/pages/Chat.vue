@@ -58,16 +58,19 @@
                             <Avatar v-if="!message.isUser" :image="message.avatar" shape="circle" />
                             <div :class="['p-3 rounded-lg', message.isUser ? 'bg-primary-500 text-white' : 'bg-white border']">
                                 <div class="flex items-center gap-2 mb-2">
-                                    <span class="font-medium">{{ message.sender }}</span>
-                                    <span class="text-xs text-gray-500">{{ formatTime(message.time) }}</span>
+                                    <span v-if="message.isUser" class="font-medium">{{ message.sender }}</span>
+                                    <span :class="['text-xs', message.isuser ? 'text-primary-100' : 'text-gray-500']">
+                                        {{ formatTime(message.time) }}
+                                    </span>
                                 </div>
                                 <div class="message-content">
                                     {{ message.content }}
                                 </div>
                                 <div v-if="message.attachments" class="mt-2">
-                                    <div v-for="(file, index) in message.attachments" :key="index" class="p-2 bg-gray-100 rounded flex items-center mt-1">
-                                        <i :class="getFileIcon(file.name)" class="mr-2"></i>
-                                        <span>{{ file.name }}</span>
+                                    <div v-for="(file, index) in message.attachments" :key="index" class="p-2 bg-gray-100 rounded flex items-center mt-1 hover:bg-gray-200 cursor-pointer transition-colors">
+                                        <i :class="getFileIcon(file.name)" class="mr-2 text-gray-500"></i>
+                                        <span class="text-sm">{{ file.name }}</span>
+                                        <span class="ml-2 text-xs text-gray-400" v-if="file.size">{{ formatFileSize(file.size) }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -76,13 +79,14 @@
                 </div>
             </div>
 
-            <!-- 输入区域 -->
+            <!-- 在消息区域下方添加 -->
             <div class="p-4 border-t bg-white">
                 <div class="flex items-center gap-2">
-                    <!-- <FileUpload mode="basic" name="demo[]" url="/api/upload" accept="image/*" :maxFileSize="1000000" @upload="onUpload" :auto="true" chooseLabel="Browse" /> -->
-                    <Button icon="pi pi-paperclip" text rounded />
-                    <InputText v-model="newMessage" placeholder="Write your message..." class="flex-1" @keyup.enter="sendMessage" />
-                    <Button icon="pi pi-send" @click="sendMessage" />
+                    <button class="p-2 text-gray-500 hover:bg-gray-100 rounded-full">
+                        <i class="pi pi-paperclip"></i>
+                    </button>
+                    <Textarea v-model="newMessage" class="flex-1 border-none focus:ring-0" placeholder="Type a message..." autoResize rows="1" />
+                    <Button icon="pi pi-send" class="text-primary-500 hover:bg-gray-100 rounded-full" @click="sendMessage" />
                 </div>
             </div>
         </div>
@@ -147,7 +151,7 @@ const messages = ref([
         time: '2024-03-11T12:30:00',
         content: "Hey there! I've heard about the accessibility features...",
         avatar: '/user3.png',
-        attachments: [{ name: 'logo.png' }, { name: 'guide.pdf' }, { name: 'requirements.doc' }, { name: 'mockup.xlsx' }]
+        attachments: [{ name: 'logo.png', size: 1024 * 1024 * 2 }, { name: 'guide.pdf', size: 1024 * 1024 * 5000 }, { name: 'requirements.doc' }, { name: 'mockup.xlsx' }]
     },
     {
         id: 2,
@@ -211,6 +215,14 @@ const getFileIcon = (fileName) => {
         default:
             return 'pi pi-file';
     }
+};
+
+const formatFileSize = (bytes, decimals = 1) => {
+    if (!bytes) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(decimals))}${sizes[i]}`;
 };
 
 const onUpload = () => {};
