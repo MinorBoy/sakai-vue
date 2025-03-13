@@ -33,12 +33,15 @@
         <!-- 主聊天区域 -->
         <div class="flex-1 flex flex-col">
             <!-- 聊天头 -->
-            <div class="p-4 border-b flex items-center">
-                <Avatar :image="activeChannelData.avatar" shape="circle" size="large" />
-                <div class="ml-3">
-                    <div class="font-bold">{{ activeChannelData.name }}</div>
-                    <div class="text-sm text-gray-500">{{ activeChannelData.members }} members</div>
+            <div class="p-4 border-b flex items-center justify-between">
+                <div class="flex items-center">
+                    <Avatar :image="activeChannelData.avatar" shape="circle" size="large" />
+                    <div class="ml-3">
+                        <div class="font-bold">{{ activeChannelData.name }}</div>
+                        <div class="text-sm text-gray-500">{{ activeChannelData.members }} members</div>
+                    </div>
                 </div>
+                <Button icon="pi pi-cog" @click="visibleRight = true" />
             </div>
 
             <!-- 消息区域 -->
@@ -76,17 +79,46 @@
                 </div>
             </div>
         </div>
+
+        <!-- 设置面板 -->
+        <Drawer v-model:visible="visibleRight" position="right" :header="'Settings'" :modal="true" class="!w-full md:!w-80 lg:!w-[30rem]">
+            <div class="p-fluid formgrid grid">
+                <label for="model" class="font-semibold">模型</label>
+                <Select id="model" v-model="settings.model.value" :options="models" optionLabel="name" placeholder="Select a model" class="ml-left mt-2" />
+
+                <Divider />
+
+                <label for="model" class="font-semibold">参数</label>
+                <ParameterRow label="温度" v-model:value="settings.temperature" :min="0" :max="1" :step="0.1" />
+                <ParameterRow label="Top P" v-model:value="settings.top_p" :min="0" :max="1" :step="0.1" />
+                <ParameterRow label="频率惩罚" v-model:value="settings.frequency_penalty" :min="-2" :max="2" :step="0.1" />
+                <ParameterRow label="存在惩罚" v-model:value="settings.presence_penalty" :min="-2" :max="2" :step="0.1" />
+                <ParameterRow label="最大标记" v-model:value="settings.max_completion_tokens" :min="1" :max="4096" :step="1" />
+            </div>
+        </Drawer>
     </div>
 </template>
 
 <script setup>
-import Avatar from 'primevue/avatar';
-import Button from 'primevue/button';
-import Divider from 'primevue/divider';
-import InputText from 'primevue/inputtext';
+import ParameterRow from '@/components/chat/ParameterRow.vue'; // 导入 ParameterRow 组件
 import { computed, ref } from 'vue';
 
 const activeChannel = ref(1);
+const visibleRight = ref(false);
+
+const settings = ref({
+    model: { enabled: false, value: null },
+    temperature: { enabled: false, value: 0.7 },
+    top_p: { enabled: false, value: 1 },
+    frequency_penalty: { enabled: false, value: 0 },
+    presence_penalty: { enabled: false, value: 0 },
+    max_completion_tokens: { enabled: false, value: 100 }
+});
+
+const models = ref([
+    { name: 'GPT-3', value: 'gpt3' },
+    { name: 'GPT-4', value: 'gpt4' }
+]);
 
 const channels = ref([
     {
